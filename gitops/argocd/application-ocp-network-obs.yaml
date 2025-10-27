@@ -11,7 +11,7 @@ spec:
     server: 'https://kubernetes.default.svc'
   project: default
   source:
-    path: gitops/cluster-services/ocp-network-obs
+    path: gitops/cluster-services/ocp-network-observability
     repoURL: https://github.com/anmiralles/openshift-observability-workshop.git
     targetRevision: main
   syncPolicy:
