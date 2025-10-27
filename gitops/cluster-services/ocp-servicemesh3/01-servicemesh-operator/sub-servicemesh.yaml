@@ -4,7 +4,7 @@ metadata:
   name: servicemeshoperator3
   namespace: openshift-operators
 spec:
-  channel: candidates
+  channel: stable
   installPlanApproval: Automatic
   name: servicemeshoperator3
   source: redhat-operators
