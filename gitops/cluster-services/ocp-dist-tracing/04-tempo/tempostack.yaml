@@ -56,8 +56,6 @@ spec:
             cpu: '1'
       jaegerQuery:
         enabled: true
-        ingress:
-          type: route
         monitorTab:
           enabled: true 
           prometheusEndpoint: "https://thanos-querier.openshift-monitoring.svc.cluster.local:9091"
