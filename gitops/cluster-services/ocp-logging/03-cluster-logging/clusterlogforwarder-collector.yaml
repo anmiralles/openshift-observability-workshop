@@ -1,0 +1,101 @@
+---
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: collector
+  namespace: openshift-logging
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    # observability.openshift.io/log-level: debug
+spec:
+  collector:
+    resources:
+      # limits:
+      #   memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 1Gi
+    tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/infra
+      value: reserved
+    - effect: NoExecute
+      key: node-role.kubernetes.io/infra
+      value: reserved
+  filters:
+    # Available: openshiftLabels, detectMultilineException, drop, kubeAPIAudit, parse, prune
+    - name: detectexception
+      type: detectMultilineException
+    - name: parse-json
+      type: parse
+    - name: labels
+      openshiftLabels:
+        test: amiralle
+      type: openshiftLabels
+  managementState: Managed
+  # inputs:
+  #   - name: quarkus-observability-logs
+  #     application:
+  #       includes:
+  #         - namespace: quarkus-observability
+  outputs:
+    - name: default-lokistack
+      type: lokiStack
+      lokiStack:
+        target:
+          name: logging-loki
+          namespace: openshift-logging
+        authentication:
+          token:
+            from: serviceAccount
+      tls:
+        ca:
+          key: service-ca.crt
+          configMapName: openshift-service-ca.crt
+    # - name: rsyslog-bastion
+    #   type: syslog
+    #   syslog:
+    #     facility: local0
+    #     rfc: RFC5424
+    #     severity: informational
+    #   url: 'tcp://X.X.X.X:514'   # Bastion
+    # - name: cw-output
+    #   type: cloudwatch 
+    #   cloudwatch:
+    #     groupBy: logType 
+    #     groupPrefix: ${CLOUDWATCH_GROUP_PREFIX}
+    #     region: ${AWS_DEFAULT_REGION}
+    #   secret:
+    #       name: ${AWS_SECRET_NAME} 
+  pipelines:
+    # - name: audit-logs-to-rsyslog
+    #   inputRefs:
+    #     - audit
+    #   # filterRefs:
+    #   # - detectexception
+    #   # - labels
+    #   # - parse-json
+    #   outputRefs:
+    #     - rsyslog-bastion
+    # - name: quarkus-observability
+    #   inputRefs: 
+    #     - quarkus-observability-logs
+    #   filterRefs:
+    #   # - detectexception
+    #   - labels
+    #   - parse-json
+    #   outputRefs:
+    #     - cw-output 
+    - name: default-lokistack
+      inputRefs:
+        - application
+        - infrastructure
+        - audit
+      filterRefs:
+        - detectexception
+        - labels
+        - parse-json
+      outputRefs:
+        - default-lokistack
+  serviceAccount:
+    name: logging-collector

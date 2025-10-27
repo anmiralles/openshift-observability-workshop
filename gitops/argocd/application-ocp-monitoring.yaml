@@ -1,0 +1,20 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+    app: ocp-monitoring
+  name: ocp-monitoring
+  namespace: openshift-gitops
+spec:
+  destination:
+    server: 'https://kubernetes.default.svc'
+  project: default
+  source:
+    path: gitops/cluster-services/ocp-monitoring
+    repoURL: https://github.com/anmiralles/openshift-observability-workshop.git
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false

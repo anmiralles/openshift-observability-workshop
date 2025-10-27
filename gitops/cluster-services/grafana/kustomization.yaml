@@ -1,0 +1,12 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: grafana
+
+resources:
+  - 01-operator
+  - 02-grafana
+  - 03-datasource
+  - 04-dashboard
+  - 05-grafana-tempo

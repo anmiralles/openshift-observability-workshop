@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - application-ocp-monitoring.yaml
+  - application-ocp-logging.yaml
+  - application-ocp-coo.yaml
+  - application-ocp-dist-tracing.yaml
+  - application-ocp-servicemesh.yaml
+  - application-grafana.yaml
+  - application-ocp-alerting.yaml
+  - application-ocp-network-obs.yaml
+  - application-quarkus-observability.yaml
+  - application-bookinfo.yaml

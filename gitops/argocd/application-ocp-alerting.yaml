@@ -1,0 +1,22 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+    app: ocp-alerting
+  name: ocp-alerting
+  namespace: openshift-gitops
+spec:
+  destination:
+    server: 'https://kubernetes.default.svc'
+  project: default
+  source:
+    path: gitops/cluster-services/ocp-alerting
+    repoURL: https://github.com/anmiralles/openshift-observability-workshop.git
+    targetRevision: main
+    kustomize:
+      namespace: quarkus-observability
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false

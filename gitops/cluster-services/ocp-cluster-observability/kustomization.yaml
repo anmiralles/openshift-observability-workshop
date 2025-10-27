@@ -1,0 +1,9 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - 01-operator/sub-cluster-observability-operator.yaml
+  - 02-uiplugins/uiplugin-logging.yaml
+  - 02-uiplugins/uiplugin-distributed-tracing.yaml
+  - 02-uiplugins/uiplugin-monitoring.yaml
+  - 02-uiplugins/uiplugin-troubleshooting-panel.yaml

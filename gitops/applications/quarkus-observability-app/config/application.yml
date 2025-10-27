@@ -1,0 +1,31 @@
+app:
+  greeting:
+    message: "Hello from RESTEasy Reactive"
+  delay:
+    default: 1000
+quarkus:
+  log:
+    console:
+      json:
+        ~: true
+        # pretty-print: true
+  micrometer:
+    export:
+      json: 
+        enabled: true
+        path: metrics-json
+      prometheus: 
+        path: metrics
+  otel:
+    enabled: true
+    exporter:
+      otlp:
+        endpoint: http://otel-collector.otel.svc.cluster.local:4317
+  swagger-ui:
+    always-include: true
+  smallrye-openapi:
+    path: /q/swagger
+    info-title: Quarkus Observability App
+    info-version: 1.0.0
+    info-description: Just a simple app to test Metrics, Logging, Tracing, etc.
+    info-contact-name: Angel Miralles Arevalo

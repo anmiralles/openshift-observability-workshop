@@ -1,0 +1,127 @@
+---
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: logging-loki
+  namespace: openshift-logging
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  limits:
+    global:
+      retention:
+        days: 7
+        # tenants:
+        #   application:
+        #     retention:
+        #       days: 1
+        #       streams:
+        #         - days: 4
+        #           selector: '{kubernetes_namespace_name=~"test.+"}'
+        #   infrastructure:
+        #     retention:
+        #       days: 5
+        #       streams:
+        #         - days: 1
+        #           selector: '{kubernetes_namespace_name=~"openshift-cluster.+"}'
+  size: 1x.demo # Could even use 1x.demo, 1x.pico, 1x.extra-small
+  # replication:
+  #   factor: 1
+  managementState: Managed
+  storage:
+    schemas:
+      - version: v13
+        effectiveDate: "2024-07-01"
+    secret:
+      name: s3-bucket-loki
+      type: s3 
+  # storageClassName: ocs-storagecluster-ceph-rbd # This is for ODF
+  storageClassName: gp3-csi
+  tenants:
+    mode: openshift-logging
+  # If you want to use customized alerting and recording rules using LogQL,
+  # you must enable the LokiStack ruler component
+  rules:
+    enabled: true
+  template:
+    compactor:
+      # nodeSelector:
+      #   node-role.kubernetes.io/infra: ""
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        value: reserved
+      - effect: NoExecute
+        key: node-role.kubernetes.io/infra
+        value: reserved
+    distributor:
+      # nodeSelector:
+      #   node-role.kubernetes.io/infra: ""
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        value: reserved
+      - effect: NoExecute
+        key: node-role.kubernetes.io/infra
+        value: reserved
+    gateway:
+      # nodeSelector:
+      #   node-role.kubernetes.io/infra: ""
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        value: reserved
+      - effect: NoExecute
+        key: node-role.kubernetes.io/infra
+        value: reserved
+    indexGateway:
+      # nodeSelector:
+      #   node-role.kubernetes.io/infra: ""
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        value: reserved
+      - effect: NoExecute
+        key: node-role.kubernetes.io/infra
+        value: reserved
+    ingester:
+      # nodeSelector:
+      #   node-role.kubernetes.io/infra: ""
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        value: reserved
+      - effect: NoExecute
+        key: node-role.kubernetes.io/infra
+        value: reserved
+    querier:
+      # nodeSelector:
+      #   node-role.kubernetes.io/infra: ""
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        value: reserved
+      - effect: NoExecute
+        key: node-role.kubernetes.io/infra
+        value: reserved
+    queryFrontend:
+      # nodeSelector:
+      #   node-role.kubernetes.io/infra: ""
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        value: reserved
+      - effect: NoExecute
+        key: node-role.kubernetes.io/infra
+        value: reserved
+    ruler:
+      # nodeSelector:
+      #   node-role.kubernetes.io/infra: ""
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        value: reserved
+      - effect: NoExecute
+        key: node-role.kubernetes.io/infra
+        value: reserved
+    

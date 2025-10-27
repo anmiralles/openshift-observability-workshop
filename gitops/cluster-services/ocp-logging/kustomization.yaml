@@ -1,0 +1,34 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+
+  - 01-clo-operator
+  - 02-loki-operator
+
+  ## S3 Bucket alterative if using ODF
+  # - obc-loki-bucket-odf.yaml
+
+  # Logs Storage
+  - 04-loki/lokistack-logging-loki.yaml
+
+  # Logging sa
+  - 03-cluster-logging/sa-logging-collector.yaml
+
+  # Log RBAC
+  - 03-cluster-logging/crb-clo-collect-application-logs.yaml
+  - 03-cluster-logging/crb-clo-collect-audit-logs.yaml
+  - 03-cluster-logging/crb-clo-collect-infrastructure-logs.yaml
+  ## Allow to write anything
+  - 03-cluster-logging/crb-clo-logging-collector-logs-writer.yaml
+
+  ## Segregate write permission
+  # - crb-clo-write-application-logs.yaml
+  # - crb-clo-write-audit-logs.yaml
+  # - crb-clo-write-infrastructure-logs.yaml
+
+  # Log Forwarding
+  - 03-cluster-logging/clusterlogforwarder-collector.yaml
+
+  # Enabling LogFileMetricsExporter for better metrics on the collector
+  - 03-cluster-logging/lfme-instance.yaml
