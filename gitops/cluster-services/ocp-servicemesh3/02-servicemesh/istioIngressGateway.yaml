@@ -121,6 +121,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: istio-ingressgateway
+  namespace: istio-ingress
 spec:
   host: ""
   port:
