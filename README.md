@@ -2,6 +2,8 @@
 
 A comprehensive observability stack for OpenShift Container Platform using GitOps (ArgoCD) for deployment and management. This workshop demonstrates a complete end-to-end observability solution including logging, distributed tracing, monitoring, network observability, and service mesh.
 
+This repo is based on Alvaro Lopez previous work about the same topic. You can see it in this [link](https://github.com/alvarolop/quarkus-observability-app).
+
 ## Table of Contents
 
 - [Architecture](#architecture)
