@@ -18,26 +18,9 @@ This repository implements an **App of Apps** pattern using ArgoCD, where a root
 
 ### High-Level Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    ArgoCD (GitOps)                      │
-│                     App of Apps                         │
-└────────────────────┬────────────────────────────────────┘
-                     │
-        ┌────────────┼────────────┐
-        │            │            │
-┌───────▼──────┐ ┌──▼────────┐ ┌▼──────────────┐
-│   Logging    │ │  Tracing  │ │  Monitoring   │
-│  (Loki)      │ │  (Tempo)  │ │ (Prometheus)  │
-└──────────────┘ └───────────┘ └───────────────┘
-        │            │            │
-        └────────────┼────────────┘
-                     │
-            ┌────────▼─────────┐
-            │     Grafana      │
-            │  (Visualization) │
-            └──────────────────┘
-```
+The following image represents the architecture of the solution:
+
+![architecture](images/architecture.png)
 
 ### Infrastructure Scheduling
 
@@ -91,7 +74,6 @@ Before running the installation scripts, ensure you have:
 This script:
 - Installs the OpenShift GitOps operator
 - Deploys an ArgoCD instance in the `openshift-gitops` namespace
-- Creates a ConsoleLink for easy ArgoCD UI access
 
 ### Step 2: Deploy Observability Stack
 
@@ -103,7 +85,6 @@ This script:
 - Labels worker nodes as infrastructure nodes
 - Creates S3 buckets for Loki, Tempo, and Network Observability
 - Creates Kubernetes secrets for S3 access
-- Creates ConsoleLinks for Grafana and Jaeger UI
 - Triggers ArgoCD to deploy all observability components
 
 ## Observability Stack Components
@@ -271,60 +252,6 @@ Alert routing and notification configuration.
 - Label-based alert routing
 - Integration with AlertManager
 
-## GitOps Structure
-
-### App of Apps Pattern
-
-The root kustomization at `gitops/argocd/kustomization.yaml` declares all ArgoCD applications:
-
-```yaml
-resources:
-  - application-ocp-monitoring.yaml
-  - application-ocp-logging.yaml
-  - application-ocp-coo.yaml
-  - application-ocp-dist-tracing.yaml
-  - application-ocp-servicemesh.yaml
-  - application-grafana.yaml
-  - application-ocp-alerting.yaml
-  - application-ocp-network-obs.yaml
-  - application-quarkus-observability.yaml
-  - application-bookinfo.yaml
-```
-
-### Application Structure
-
-Each ArgoCD application follows this pattern:
-
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: <component-name>
-  namespace: openshift-gitops
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/anmiralles/openshift-observability-workshop.git
-    targetRevision: main
-    path: gitops/cluster-services/<component-name>
-  destination:
-    server: https://kubernetes.default.svc
-  syncPolicy:
-    automated:
-      prune: false
-      selfHeal: false
-```
-
-### Sync Policy
-
-- **Automated**: Disabled by default (manual sync required)
-- **Prune**: Disabled (resources are not automatically deleted)
-- **SelfHeal**: Disabled (changes are not automatically reverted)
-
-This conservative approach ensures changes are reviewed before being applied to the cluster.
-
-## Post-Installation
-
 ### Access the UIs
 
 After installation, access the following web interfaces:
@@ -333,13 +260,13 @@ After installation, access the following web interfaces:
    ```bash
    oc get route argocd-server -n openshift-gitops
    ```
-   Login: Use OpenShift credentials
+   ![argo.png](images/argo.png)
 
 2. **Grafana**
    ```bash
    oc get route grafana-route -n grafana
    ```
-   Login: Use OpenShift OAuth
+   ![grafana.png](images/grafana.png)
 
 3. **Jaeger UI** (Tempo)
    ```bash
@@ -350,93 +277,7 @@ After installation, access the following web interfaces:
    ```bash
    oc get route kiali -n istio-system
    ```
-
-### Verify Component Status
-
-```bash
-# Check ArgoCD applications
-oc get applications -n openshift-gitops
-
-# Check LokiStack
-oc get lokistack -n openshift-logging
-
-# Check TempoStack
-oc get tempostack -n openshift-tempo
-
-# Check Grafana
-oc get grafana -n grafana
-
-# Check all operators
-oc get operators
-```
-
-### View ConsoleLinks
-
-ConsoleLinks are created for easy access from the OpenShift Console:
-
-```bash
-oc get consolelinks
-```
-
-## Common Operations
-
-### Sync ArgoCD Applications
-
-```bash
-# Sync all applications (from repository root)
-oc apply -k ./gitops/argocd
-
-# Sync specific application using ArgoCD CLI
-argocd app sync application-ocp-logging
-
-# Sync via OpenShift CLI
-oc patch application application-ocp-logging -n openshift-gitops \
-  --type merge -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{}}}'
-```
-
-### View Logs
-
-```bash
-# View logs from a specific pod
-oc logs -n openshift-logging <pod-name>
-
-# View logs from Cluster Logging Operator
-oc logs -n openshift-logging deployment/cluster-logging-operator
-
-# View logs from Vector (log collector)
-oc logs -n openshift-logging daemonset/collector
-```
-
-### Check Storage
-
-```bash
-# Check S3 secrets
-oc get secret s3-bucket-loki -n openshift-logging
-oc get secret s3-bucket-tempo -n openshift-tempo
-oc get secret s3-bucket-net-obs -n netobserv
-
-# View bucket configuration
-oc get secret s3-bucket-loki -n openshift-logging -o yaml
-```
-
-### Troubleshooting
-
-```bash
-# Check operator status
-oc get csv -n openshift-logging
-oc get csv -n openshift-tempo-operator
-
-# Check pod status
-oc get pods -n openshift-logging
-oc get pods -n openshift-tempo
-oc get pods -n grafana
-
-# Check events
-oc get events -n openshift-logging --sort-by='.lastTimestamp'
-
-# Check ArgoCD application health
-oc get application application-ocp-logging -n openshift-gitops -o yaml
-```
+    ![kiali.png](images/kiali.png)
 
 ## Sample Applications
 
@@ -451,86 +292,13 @@ The repository includes two sample applications for testing observability:
    - Service mesh demonstration
    - Multi-service tracing example
 
-## Storage Configuration
-
-### S3 Buckets
-
-Three S3 buckets are created with random suffixes:
-
-1. **Loki**: `s3-bucket-loki-xxxxx` (logs)
-2. **Tempo**: `s3-bucket-tempo-xxxxx` (traces)
-3. **Network Observability**: `s3-bucket-net-obs-xxxxx` (network flows)
-
-### Alternative Storage (ODF)
-
-For on-premise deployments without S3, you can use OpenShift Data Foundation (ODF):
-
-- Uncomment ODF-related resources in the kustomization files
-- Update storage class to `ocs-storagecluster-ceph-rbd`
-- Use ObjectBucketClaims (OBC) instead of S3 secrets
-
-## Customization
-
-### Modifying Components
-
-1. Edit resources in `gitops/cluster-services/<component>/`
-2. Commit changes to git repository
-3. Sync ArgoCD application to apply changes
-
-### Adding New Components
-
-1. Create directory under `gitops/cluster-services/<new-component>/`
-2. Use numbered subdirectories for installation phases (01-, 02-, etc.)
-3. Create `kustomization.yaml` referencing all resources
-4. Create ArgoCD application in `gitops/argocd/application-<name>.yaml`
-5. Add application reference to `gitops/argocd/kustomization.yaml`
-6. Apply changes: `oc apply -k ./gitops/argocd`
-
-### Retention Policies
-
-Modify retention settings in component configurations:
-
-- **Loki**: Edit `lokistack-logging-loki.yaml` (default: 7 days)
-- **Tempo**: Edit `tempostack.yaml` retention settings
-- **Prometheus**: Edit `cm-cluster-monitoring-config.yaml`
-
-## Architecture Decisions
-
-### Why This Stack?
-
-- **Loki**: Cost-effective log aggregation with label-based indexing
-- **Tempo**: Scalable distributed tracing without expensive indexing
-- **Grafana**: Unified visualization reducing context switching
-- **Prometheus**: Industry-standard metrics collection
-- **OpenTelemetry**: Vendor-neutral instrumentation standard
-- **Istio**: Mature service mesh with strong observability features
-- **ArgoCD**: GitOps-native continuous delivery for Kubernetes
-
-### GitOps Benefits
-
-- Declarative infrastructure as code
-- Version control for all configuration
-- Audit trail of all changes
-- Easy rollback capabilities
-- Consistent deployments across environments
-
-## Contributing
-
-When contributing to this repository:
-
-1. Test changes in a development cluster first
-2. Ensure all ArgoCD applications sync successfully
-3. Update documentation for any architectural changes
-4. Follow the numbered directory pattern for installation order
-
 ## Resources
 
 - [OpenShift GitOps Documentation](https://docs.openshift.com/gitops/)
-- [Loki Documentation](https://grafana.com/docs/loki/latest/)
-- [Tempo Documentation](https://grafana.com/docs/tempo/latest/)
-- [Grafana Documentation](https://grafana.com/docs/grafana/latest/)
-- [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
-- [Istio Documentation](https://istio.io/latest/docs/)
+- [OpenShift Observability Documentation](https://docs.redhat.com/fr/documentation/red_hat_openshift_observability/1)
+- [OpenShift Logging Documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_logging/6.3)
+- [OpenShift OTEL Documentation](https://docs.redhat.com/fr/documentation/openshift_container_platform/4.18/html/red_hat_build_of_opentelemetry/otel-architecture)
+- [Openshift Service Mesh Documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_service_mesh/3.1)
 - [ArgoCD Documentation](https://argo-cd.readthedocs.io/)
 
 ## License
